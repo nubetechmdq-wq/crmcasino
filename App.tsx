@@ -16,7 +16,9 @@ import { Users as UsersIcon, CreditCard, Lock, Mail, ChevronRight, LayoutGrid, C
 const App: React.FC = () => {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [currentTab, setCurrentTab] = useState('dashboard');
-  const [loginForm, setLoginForm] = useState({ phone: '', role: UserRole.CASHIER });
+  const [isRegistering, setIsRegistering] = useState(false);
+  const [loginForm, setLoginForm] = useState({ phone: '', password: '', role: UserRole.CASHIER });
+  const [registerForm, setRegisterForm] = useState({ name: '', phone: '', password: '', role: UserRole.CASHIER });
 
   // Notification State
   const [notifications, setNotifications] = useState<AppNotification[]>([]);
@@ -71,10 +73,10 @@ const App: React.FC = () => {
   // Handle Login
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
-    processLogin(loginForm.phone.trim(), loginForm.role);
+    processLogin(loginForm.phone.trim(), loginForm.password.trim(), loginForm.role);
   };
 
-  const processLogin = async (phone: string, role: UserRole) => {
+  const processLogin = async (phone: string, password: string, role: UserRole) => {
     console.log('🔐 Attempting login:', { phone, role });
 
     try {
@@ -83,11 +85,20 @@ const App: React.FC = () => {
         .select('*')
         .eq('phone', phone)
         .eq('role', role)
+        .eq('status', 'ACTIVE')
         .single();
 
       console.log('📊 Supabase response:', { user, error });
 
       if (user) {
+        // En un sistema real usaríamos hashing. Aquí comparamos directamente 
+        // para compatibilidad con la estructura simple actual o si el campo existe.
+        if (user.password && user.password !== password) {
+          console.error('❌ Login failed - invalid password');
+          alert("Contraseña incorrecta.");
+          return;
+        }
+
         console.log('✅ Login successful:', user);
         setCurrentUser(user);
         setCurrentTab(user.role === UserRole.ADMIN ? 'dashboard' : 'validator');
@@ -108,10 +119,60 @@ const App: React.FC = () => {
     }
   };
 
-  const quickLogin = (phone: string, role: UserRole) => {
-    setLoginForm({ phone, role });
-    processLogin(phone, role);
+  const handleRegister = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const { name, phone, password, role } = registerForm;
+
+    if (!name || !phone || !password) {
+      alert("Por favor completa todos los campos.");
+      return;
+    }
+
+    try {
+      // Check if user already exists
+      const { data: existingUser } = await supabase
+        .from('users')
+        .select('id')
+        .eq('phone', phone.trim())
+        .single();
+
+      if (existingUser) {
+        alert("Este número de teléfono ya está registrado.");
+        return;
+      }
+
+      const newUser = {
+        name: name.trim(),
+        phone: phone.trim(),
+        password: password.trim(),
+        role: role,
+        balance: 0,
+        status: 'ACTIVE'
+      };
+
+      const { data, error } = await supabase
+        .from('users')
+        .insert([newUser])
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      if (data) {
+        addNotification(
+          "Cuenta creada",
+          `Bienvenido ${data.name}. Tu cuenta de ${data.role} ha sido creada con éxito.`,
+          NotificationLevel.SUCCESS
+        );
+        setCurrentUser(data);
+        setCurrentTab(data.role === UserRole.ADMIN ? 'dashboard' : 'validator');
+      }
+    } catch (err) {
+      console.error('❌ Registration error:', err);
+      alert("Error al registrar el usuario. Revisa la consola.");
+    }
   };
+
 
   if (!currentUser) {
     return (
@@ -136,95 +197,188 @@ const App: React.FC = () => {
         <div className="w-full lg:w-1/2 flex items-center justify-center p-8">
           <div className="max-w-md w-full space-y-8 animate-in fade-in slide-in-from-right-8 duration-700">
             <div className="text-center lg:text-left">
-              <h2 className="text-4xl font-black tracking-tighter text-white mb-2">Bienvenido</h2>
-              <p className="text-slate-400">Ingresa tus credenciales para continuar</p>
+              <h2 className="text-4xl font-black tracking-tighter text-white mb-2">
+                {isRegistering ? 'Crea tu Cuenta' : 'Bienvenido'}
+              </h2>
+              <p className="text-slate-400">
+                {isRegistering ? 'Completa tus datos para empezar' : 'Ingresa tus credenciales para continuar'}
+              </p>
             </div>
 
-            <form onSubmit={handleLogin} className="space-y-6">
-              <div className="space-y-2">
-                <label className="text-sm font-bold text-slate-300 ml-1">Teléfono Registrado</label>
-                <div className="relative group">
-                  <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-emerald-500 transition-colors" size={20} />
-                  <input
-                    type="text"
-                    required
-                    placeholder="+54911..."
-                    className="w-full bg-slate-900 border border-slate-800 rounded-2xl py-4 pl-12 pr-4 text-white outline-none focus:ring-2 focus:ring-emerald-500 transition-all"
-                    value={loginForm.phone}
-                    onChange={(e) => setLoginForm({ ...loginForm, phone: e.target.value })}
-                  />
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <label className="text-sm font-bold text-slate-300 ml-1">Rol de Acceso</label>
-                <div className="grid grid-cols-2 gap-4">
-                  <button
-                    type="button"
-                    onClick={() => setLoginForm({ ...loginForm, role: UserRole.CASHIER })}
-                    className={`py-4 rounded-2xl border-2 font-bold transition-all flex flex-col items-center gap-2 ${loginForm.role === UserRole.CASHIER
-                      ? 'bg-emerald-500/10 border-emerald-500 text-emerald-400'
-                      : 'bg-slate-900 border-slate-800 text-slate-500 hover:border-slate-700'
-                      }`}
-                  >
-                    <CreditCard size={24} />
-                    Cajero
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setLoginForm({ ...loginForm, role: UserRole.ADMIN })}
-                    className={`py-4 rounded-2xl border-2 font-bold transition-all flex flex-col items-center gap-2 ${loginForm.role === UserRole.ADMIN
-                      ? 'bg-emerald-500/10 border-emerald-500 text-emerald-400'
-                      : 'bg-slate-900 border-slate-800 text-slate-500 hover:border-slate-700'
-                      }`}
-                  >
-                    <Lock size={24} />
-                    Administrador
-                  </button>
-                </div>
-              </div>
-
-              <button
-                type="submit"
-                className="w-full bg-emerald-500 hover:bg-emerald-600 text-white font-black py-5 rounded-2xl shadow-2xl shadow-emerald-500/20 transition-all flex items-center justify-center gap-2 group"
-              >
-                Acceder al CRM
-                <ChevronRight size={20} className="group-hover:translate-x-1 transition-transform" />
-              </button>
-            </form>
-
-            {/* Quick Access Section */}
-            <div className="pt-8 space-y-4">
-              <div className="flex items-center gap-2">
-                <div className="h-px bg-slate-800 flex-1"></div>
-                <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Acceso de Prueba</span>
-                <div className="h-px bg-slate-800 flex-1"></div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-3">
-                <button
-                  onClick={() => quickLogin('+5491112345678', UserRole.ADMIN)}
-                  className="bg-slate-900/50 hover:bg-slate-800 border border-slate-800 p-4 rounded-2xl text-left transition-all group"
-                >
-                  <div className="flex items-center justify-between mb-1">
-                    <span className="text-xs font-bold text-amber-500 uppercase">Admin</span>
-                    <Zap size={14} className="text-slate-600 group-hover:text-amber-500" />
+            {isRegistering ? (
+              <form onSubmit={handleRegister} className="space-y-6">
+                <div className="space-y-2">
+                  <label className="text-sm font-bold text-slate-300 ml-1">Nombre Completo</label>
+                  <div className="relative group">
+                    <UsersIcon className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-emerald-500 transition-colors" size={20} />
+                    <input
+                      type="text"
+                      required
+                      placeholder="Tu nombre"
+                      className="w-full bg-slate-900 border border-slate-800 rounded-2xl py-4 pl-12 pr-4 text-white outline-none focus:ring-2 focus:ring-emerald-500 transition-all"
+                      value={registerForm.name}
+                      onChange={(e) => setRegisterForm({ ...registerForm, name: e.target.value })}
+                    />
                   </div>
-                  <p className="text-[10px] text-slate-400 font-mono">+5491112345678</p>
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-sm font-bold text-slate-300 ml-1">Teléfono WhatsApp</label>
+                  <div className="relative group">
+                    <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-emerald-500 transition-colors" size={20} />
+                    <input
+                      type="text"
+                      required
+                      placeholder="+54911..."
+                      className="w-full bg-slate-900 border border-slate-800 rounded-2xl py-4 pl-12 pr-4 text-white outline-none focus:ring-2 focus:ring-emerald-500 transition-all"
+                      value={registerForm.phone}
+                      onChange={(e) => setRegisterForm({ ...registerForm, phone: e.target.value })}
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-sm font-bold text-slate-300 ml-1">Establecer Contraseña</label>
+                  <div className="relative group">
+                    <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-emerald-500 transition-colors" size={20} />
+                    <input
+                      type="password"
+                      required
+                      placeholder="••••••••"
+                      className="w-full bg-slate-900 border border-slate-800 rounded-2xl py-4 pl-12 pr-4 text-white outline-none focus:ring-2 focus:ring-emerald-500 transition-all"
+                      value={registerForm.password}
+                      onChange={(e) => setRegisterForm({ ...registerForm, password: e.target.value })}
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-sm font-bold text-slate-300 ml-1">Selecciona tu Rol</label>
+                  <div className="grid grid-cols-2 gap-4">
+                    <button
+                      type="button"
+                      onClick={() => setRegisterForm({ ...registerForm, role: UserRole.CASHIER })}
+                      className={`py-4 rounded-2xl border-2 font-bold transition-all flex flex-col items-center gap-2 ${registerForm.role === UserRole.CASHIER
+                        ? 'bg-emerald-500/10 border-emerald-500 text-emerald-400'
+                        : 'bg-slate-900 border-slate-800 text-slate-500 hover:border-slate-700'
+                        }`}
+                    >
+                      <CreditCard size={24} />
+                      Cajero
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setRegisterForm({ ...registerForm, role: UserRole.ADMIN })}
+                      className={`py-4 rounded-2xl border-2 font-bold transition-all flex flex-col items-center gap-2 ${registerForm.role === UserRole.ADMIN
+                        ? 'bg-emerald-500/10 border-emerald-500 text-emerald-400'
+                        : 'bg-slate-900 border-slate-800 text-slate-500 hover:border-slate-700'
+                        }`}
+                    >
+                      <Lock size={24} />
+                      Administrador
+                    </button>
+                  </div>
+                </div>
+
+                <button
+                  type="submit"
+                  className="w-full bg-emerald-500 hover:bg-emerald-600 text-white font-black py-5 rounded-2xl shadow-2xl shadow-emerald-500/20 transition-all flex items-center justify-center gap-2 group"
+                >
+                  Confirmar Registro
+                  <ChevronRight size={20} className="group-hover:translate-x-1 transition-transform" />
                 </button>
 
-                <button
-                  onClick={() => quickLogin('+5491198765432', UserRole.CASHIER)}
-                  className="bg-slate-900/50 hover:bg-slate-800 border border-slate-800 p-4 rounded-2xl text-left transition-all group"
-                >
-                  <div className="flex items-center justify-between mb-1">
-                    <span className="text-xs font-bold text-blue-500 uppercase">Cajero</span>
-                    <Zap size={14} className="text-slate-600 group-hover:text-blue-500" />
+                <p className="text-center text-slate-400 text-sm">
+                  ¿Ya tienes cuenta?{' '}
+                  <button
+                    type="button"
+                    onClick={() => setIsRegistering(false)}
+                    className="text-emerald-500 font-bold hover:underline"
+                  >
+                    Inicia Sesión
+                  </button>
+                </p>
+              </form>
+            ) : (
+              <form onSubmit={handleLogin} className="space-y-6">
+                <div className="space-y-2">
+                  <label className="text-sm font-bold text-slate-300 ml-1">Teléfono Registrado</label>
+                  <div className="relative group">
+                    <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-emerald-500 transition-colors" size={20} />
+                    <input
+                      type="text"
+                      required
+                      placeholder="+54911..."
+                      className="w-full bg-slate-900 border border-slate-800 rounded-2xl py-4 pl-12 pr-4 text-white outline-none focus:ring-2 focus:ring-emerald-500 transition-all"
+                      value={loginForm.phone}
+                      onChange={(e) => setLoginForm({ ...loginForm, phone: e.target.value })}
+                    />
                   </div>
-                  <p className="text-[10px] text-slate-400 font-mono">+5491198765432</p>
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-sm font-bold text-slate-300 ml-1">Contraseña</label>
+                  <div className="relative group">
+                    <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-emerald-500 transition-colors" size={20} />
+                    <input
+                      type="password"
+                      required
+                      placeholder="••••••••"
+                      className="w-full bg-slate-900 border border-slate-800 rounded-2xl py-4 pl-12 pr-4 text-white outline-none focus:ring-2 focus:ring-emerald-500 transition-all"
+                      value={loginForm.password}
+                      onChange={(e) => setLoginForm({ ...loginForm, password: e.target.value })}
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-sm font-bold text-slate-300 ml-1">Rol de Acceso</label>
+                  <div className="grid grid-cols-2 gap-4">
+                    <button
+                      type="button"
+                      onClick={() => setLoginForm({ ...loginForm, role: UserRole.CASHIER })}
+                      className={`py-4 rounded-2xl border-2 font-bold transition-all flex flex-col items-center gap-2 ${loginForm.role === UserRole.CASHIER
+                        ? 'bg-emerald-500/10 border-emerald-500 text-emerald-400'
+                        : 'bg-slate-900 border-slate-800 text-slate-500 hover:border-slate-700'
+                        }`}
+                    >
+                      <CreditCard size={24} />
+                      Cajero
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setLoginForm({ ...loginForm, role: UserRole.ADMIN })}
+                      className={`py-4 rounded-2xl border-2 font-bold transition-all flex flex-col items-center gap-2 ${loginForm.role === UserRole.ADMIN
+                        ? 'bg-emerald-500/10 border-emerald-500 text-emerald-400'
+                        : 'bg-slate-900 border-slate-800 text-slate-500 hover:border-slate-700'
+                        }`}
+                    >
+                      <Lock size={24} />
+                      Administrador
+                    </button>
+                  </div>
+                </div>
+
+                <button
+                  type="submit"
+                  className="w-full bg-emerald-500 hover:bg-emerald-600 text-white font-black py-5 rounded-2xl shadow-2xl shadow-emerald-500/20 transition-all flex items-center justify-center gap-2 group"
+                >
+                  Acceder al CRM
+                  <ChevronRight size={20} className="group-hover:translate-x-1 transition-transform" />
                 </button>
-              </div>
-            </div>
+
+                <p className="text-center text-slate-400 text-sm">
+                  ¿No tienes cuenta?{' '}
+                  <button
+                    type="button"
+                    onClick={() => setIsRegistering(true)}
+                    className="text-emerald-500 font-bold hover:underline"
+                  >
+                    Registrate aquí
+                  </button>
+                </p>
+              </form>
+            )}
 
             <div className="pt-8 text-center text-[10px] text-slate-700 uppercase tracking-widest font-bold">
               Soporte Técnico CasinoHub &copy; 2024
