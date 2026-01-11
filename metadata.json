@@ -1,6 +1,6 @@
 {
-  "name": "Casino Hub CRM",
-  "description": "A professional CRM for virtual casinos operating on WhatsApp, featuring automated Mercado Pago receipt validation, transaction management, and role-based access control.",
+  "name": "Flowbi CRM",
+  "description": "A professional CRM for modern businesses operating on WhatsApp, featuring automated receipt validation, transaction management, and role-based access control.",
   "requestFramePermissions": [
     "camera"
   ]

@@ -11,7 +11,25 @@ import UserImport from './components/UserImport';
 import { NotificationPanel, NotificationToast } from './components/NotificationSystem';
 import { StorageService } from './services/mockData';
 import { supabase } from './services/supabaseClient';
-import { Users as UsersIcon, CreditCard, Lock, Mail, ChevronRight, LayoutGrid, CheckCircle2, XCircle, Zap, UserPlus } from 'lucide-react';
+import {
+  Users as UsersIcon,
+  CreditCard,
+  Lock,
+  Mail,
+  ChevronRight,
+  LayoutGrid,
+  CheckCircle2,
+  XCircle,
+  Zap,
+  UserPlus,
+  ArrowRight,
+  Bell,
+  X,
+  Plus,
+  Search,
+  LogOut,
+  ChevronDown
+} from 'lucide-react';
 
 const App: React.FC = () => {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
@@ -70,15 +88,12 @@ const App: React.FC = () => {
     setNotifications([]);
   };
 
-  // Handle Login
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
     processLogin(loginForm.phone.trim(), loginForm.password.trim(), loginForm.role);
   };
 
   const processLogin = async (phone: string, password: string, role: UserRole) => {
-    console.log('🔐 Attempting login:', { phone, role });
-
     try {
       const { data: user, error } = await supabase
         .from('users')
@@ -88,48 +103,35 @@ const App: React.FC = () => {
         .eq('status', 'ACTIVE')
         .single();
 
-      console.log('📊 Supabase response:', { user, error });
-
       if (user) {
-        // En un sistema real usaríamos hashing. Aquí comparamos directamente 
-        // para compatibilidad con la estructura simple actual o si el campo existe.
         if (user.password && user.password !== password) {
-          console.error('❌ Login failed - invalid password');
           alert("Contraseña incorrecta.");
           return;
         }
-
-        console.log('✅ Login successful:', user);
         setCurrentUser(user);
         setCurrentTab(user.role === UserRole.ADMIN ? 'dashboard' : 'validator');
-
-        // Welcome Notification
         addNotification(
           `Bienvenido, ${user.name}`,
-          `Has iniciado sesión como ${user.role}. Tienes acceso completo al sistema.`,
+          `Has iniciado sesión como ${user.role}.`,
           NotificationLevel.SUCCESS
         );
       } else {
-        console.error('❌ Login failed - no user found');
-        alert("Credenciales incorrectas.\nAdmin: +5491112345678\nCajero: +5491198765432");
+        alert("Credenciales incorrectas.");
       }
     } catch (err) {
-      console.error('❌ Login error:', err);
-      alert("Error al conectar con la base de datos. Revisa la consola.");
+      alert("Error al conectar con la base de datos.");
     }
   };
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
     const { name, phone, password, role } = registerForm;
-
     if (!name || !phone || !password) {
       alert("Por favor completa todos los campos.");
       return;
     }
 
     try {
-      // Check if user already exists
       const { data: existingUser } = await supabase
         .from('users')
         .select('id')
@@ -161,227 +163,156 @@ const App: React.FC = () => {
       if (data) {
         addNotification(
           "Cuenta creada",
-          `Bienvenido ${data.name}. Tu cuenta de ${data.role} ha sido creada con éxito.`,
+          `Bienvenido ${data.name}.`,
           NotificationLevel.SUCCESS
         );
         setCurrentUser(data);
         setCurrentTab(data.role === UserRole.ADMIN ? 'dashboard' : 'validator');
       }
     } catch (err) {
-      console.error('❌ Registration error:', err);
-      alert("Error al registrar el usuario. Revisa la consola.");
+      alert("Error al registrar el usuario.");
     }
   };
 
-
   if (!currentUser) {
     return (
-      <div className="min-h-screen bg-slate-950 flex flex-col lg:flex-row">
-        {/* Decorative Side */}
-        <div className="hidden lg:flex lg:w-1/2 bg-emerald-600 relative overflow-hidden items-center justify-center p-12">
-          <div className="absolute inset-0 opacity-10 bg-[radial-gradient(#fff_1px,transparent_1px)] [background-size:20px_20px]"></div>
-          <div className="relative z-10 text-center space-y-8 max-w-lg">
-            <div className="w-24 h-24 bg-white/10 backdrop-blur-xl rounded-[40px] flex items-center justify-center mx-auto shadow-2xl rotate-12">
+      <div className="min-h-screen bg-[#F8FAFC] flex flex-col lg:flex-row font-sans">
+        {/* Left Side: Branding */}
+        <div className="hidden lg:flex lg:w-3/5 bg-primary-600 relative overflow-hidden items-center justify-center p-24">
+          <div className="absolute inset-0 opacity-10 bg-[radial-gradient(#fff_1.5px,transparent_1.5px)] [background-size:30px_30px]"></div>
+          <div className="relative z-10 space-y-10 max-w-xl text-center">
+            <div className="w-24 h-24 bg-white/20 backdrop-blur-2xl rounded-[40px] flex items-center justify-center mx-auto shadow-2xl border border-white/30 rotate-12">
               <LayoutGrid className="text-white" size={48} />
             </div>
-            <h1 className="text-5xl font-extrabold text-white tracking-tight leading-tight">
-              El CRM definitivo para tu <span className="text-emerald-900/50">Casino Virtual</span>
-            </h1>
-            <p className="text-emerald-100 text-lg font-medium">
-              Gestiona depósitos de Mercado Pago, automatiza validaciones y chatea con tus jugadores en una sola plataforma segura.
-            </p>
+            <div className="space-y-4">
+              <h1 className="text-6xl font-black text-white tracking-tighter leading-[0.9]">
+                Flowbi <br /> <span className="text-primary-200">CRM de WhatsApp</span>
+              </h1>
+              <p className="text-primary-50/70 text-lg font-medium tracking-tight">
+                Plataforma de Automatización de WhatsApp
+              </p>
+            </div>
           </div>
         </div>
 
-        {/* Login Side */}
-        <div className="w-full lg:w-1/2 flex items-center justify-center p-8">
-          <div className="max-w-md w-full space-y-8 animate-in fade-in slide-in-from-right-8 duration-700">
-            <div className="text-center lg:text-left">
-              <h2 className="text-4xl font-black tracking-tighter text-white mb-2">
-                {isRegistering ? 'Crea tu Cuenta' : 'Bienvenido'}
-              </h2>
-              <p className="text-slate-400">
-                {isRegistering ? 'Completa tus datos para empezar' : 'Ingresa tus credenciales para continuar'}
-              </p>
-            </div>
+        {/* Right Side: Auth Forms */}
+        <div className="flex-1 flex items-center justify-center p-8">
+          <div className="max-w-md w-full">
+            <div className="bg-white p-10 lg:rounded-[48px] lg:shadow-2xl lg:shadow-slate-200/50 border border-slate-100 animate-in fade-in slide-in-from-right-12 duration-1000">
+              <div className="mb-10 text-center lg:text-left">
+                <h2 className="text-4xl font-black tracking-tight text-slate-800 mb-2">
+                  {isRegistering ? 'Crear Cuenta' : 'Bienvenido'}
+                </h2>
+                <p className="text-slate-400 font-medium font-bold">
+                  {isRegistering ? 'Completa los datos para registrarte' : 'Ingresa tus credenciales para continuar'}
+                </p>
+              </div>
 
-            {isRegistering ? (
-              <form onSubmit={handleRegister} className="space-y-6">
-                <div className="space-y-2">
-                  <label className="text-sm font-bold text-slate-300 ml-1">Nombre Completo</label>
-                  <div className="relative group">
-                    <UsersIcon className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-emerald-500 transition-colors" size={20} />
+              {isRegistering ? (
+                <form onSubmit={handleRegister} className="space-y-5">
+                  <div className="space-y-1.5">
+                    <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">Nombre Completo</label>
                     <input
                       type="text"
+                      className="w-full bg-slate-50 border border-slate-100 rounded-xl py-3.5 px-6 text-sm font-bold text-slate-800 outline-none focus:ring-4 focus:ring-primary-100 transition-all"
+                      placeholder="Juan Pérez"
                       required
-                      placeholder="Tu nombre"
-                      className="w-full bg-slate-900 border border-slate-800 rounded-2xl py-4 pl-12 pr-4 text-white outline-none focus:ring-2 focus:ring-emerald-500 transition-all"
                       value={registerForm.name}
                       onChange={(e) => setRegisterForm({ ...registerForm, name: e.target.value })}
                     />
                   </div>
-                </div>
-
-                <div className="space-y-2">
-                  <label className="text-sm font-bold text-slate-300 ml-1">Teléfono WhatsApp</label>
-                  <div className="relative group">
-                    <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-emerald-500 transition-colors" size={20} />
+                  <div className="space-y-1.5">
+                    <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">WhatsApp</label>
                     <input
                       type="text"
+                      className="w-full bg-slate-50 border border-slate-100 rounded-xl py-3.5 px-6 text-sm font-bold text-slate-800 outline-none focus:ring-4 focus:ring-primary-100 transition-all"
+                      placeholder="549..."
                       required
-                      placeholder="+54911..."
-                      className="w-full bg-slate-900 border border-slate-800 rounded-2xl py-4 pl-12 pr-4 text-white outline-none focus:ring-2 focus:ring-emerald-500 transition-all"
                       value={registerForm.phone}
                       onChange={(e) => setRegisterForm({ ...registerForm, phone: e.target.value })}
                     />
                   </div>
-                </div>
-
-                <div className="space-y-2">
-                  <label className="text-sm font-bold text-slate-300 ml-1">Establecer Contraseña</label>
-                  <div className="relative group">
-                    <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-emerald-500 transition-colors" size={20} />
+                  <div className="space-y-1.5">
+                    <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">Contraseña</label>
                     <input
                       type="password"
-                      required
+                      className="w-full bg-slate-50 border border-slate-100 rounded-xl py-3.5 px-6 text-sm font-bold text-slate-800 outline-none focus:ring-4 focus:ring-primary-100 transition-all"
                       placeholder="••••••••"
-                      className="w-full bg-slate-900 border border-slate-800 rounded-2xl py-4 pl-12 pr-4 text-white outline-none focus:ring-2 focus:ring-emerald-500 transition-all"
+                      required
                       value={registerForm.password}
                       onChange={(e) => setRegisterForm({ ...registerForm, password: e.target.value })}
                     />
                   </div>
-                </div>
-
-                <div className="space-y-2">
-                  <label className="text-sm font-bold text-slate-300 ml-1">Selecciona tu Rol</label>
-                  <div className="grid grid-cols-2 gap-4">
-                    <button
-                      type="button"
-                      onClick={() => setRegisterForm({ ...registerForm, role: UserRole.CASHIER })}
-                      className={`py-4 rounded-2xl border-2 font-bold transition-all flex flex-col items-center gap-2 ${registerForm.role === UserRole.CASHIER
-                        ? 'bg-emerald-500/10 border-emerald-500 text-emerald-400'
-                        : 'bg-slate-900 border-slate-800 text-slate-500 hover:border-slate-700'
-                        }`}
-                    >
-                      <CreditCard size={24} />
-                      Cajero
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setRegisterForm({ ...registerForm, role: UserRole.ADMIN })}
-                      className={`py-4 rounded-2xl border-2 font-bold transition-all flex flex-col items-center gap-2 ${registerForm.role === UserRole.ADMIN
-                        ? 'bg-emerald-500/10 border-emerald-500 text-emerald-400'
-                        : 'bg-slate-900 border-slate-800 text-slate-500 hover:border-slate-700'
-                        }`}
-                    >
-                      <Lock size={24} />
-                      Administrador
-                    </button>
+                  <div className="space-y-1.5">
+                    <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">Rol</label>
+                    <div className="grid grid-cols-2 gap-3">
+                      {[UserRole.ADMIN, UserRole.CASHIER].map((role) => (
+                        <button
+                          key={role}
+                          type="button"
+                          onClick={() => setRegisterForm({ ...registerForm, role })}
+                          className={`py-3.5 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all border ${registerForm.role === role
+                            ? 'bg-primary-600 border-primary-600 text-white shadow-lg shadow-primary-500/10'
+                            : 'bg-white border-slate-100 text-slate-400 hover:border-slate-300'
+                            }`}
+                        >
+                          {role}
+                        </button>
+                      ))}
+                    </div>
                   </div>
-                </div>
-
-                <button
-                  type="submit"
-                  className="w-full bg-emerald-500 hover:bg-emerald-600 text-white font-black py-5 rounded-2xl shadow-2xl shadow-emerald-500/20 transition-all flex items-center justify-center gap-2 group"
-                >
-                  Confirmar Registro
-                  <ChevronRight size={20} className="group-hover:translate-x-1 transition-transform" />
-                </button>
-
-                <p className="text-center text-slate-400 text-sm">
-                  ¿Ya tienes cuenta?{' '}
-                  <button
-                    type="button"
-                    onClick={() => setIsRegistering(false)}
-                    className="text-emerald-500 font-bold hover:underline"
-                  >
-                    Inicia Sesión
+                  <button type="submit" className="w-full bg-slate-900 text-white py-4 rounded-xl font-black text-xs uppercase tracking-widest mt-6 shadow-xl shadow-slate-900/10">
+                    Registrarse
                   </button>
-                </p>
-              </form>
-            ) : (
-              <form onSubmit={handleLogin} className="space-y-6">
-                <div className="space-y-2">
-                  <label className="text-sm font-bold text-slate-300 ml-1">Teléfono Registrado</label>
-                  <div className="relative group">
-                    <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-emerald-500 transition-colors" size={20} />
+                  <button type="button" onClick={() => setIsRegistering(false)} className="w-full text-primary-600 text-[10px] font-black uppercase tracking-widest mt-4">
+                    Volver al Login
+                  </button>
+                </form>
+              ) : (
+                <form onSubmit={handleLogin} className="space-y-8">
+                  <div className="space-y-2">
+                    <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">Teléfono</label>
                     <input
                       type="text"
-                      required
-                      placeholder="+54911..."
-                      className="w-full bg-slate-900 border border-slate-800 rounded-2xl py-4 pl-12 pr-4 text-white outline-none focus:ring-2 focus:ring-emerald-500 transition-all"
+                      className="w-full bg-slate-50 border border-slate-100 rounded-[20px] py-4 px-6 text-sm font-bold text-slate-800 outline-none focus:ring-4 focus:ring-primary-100 transition-all"
+                      placeholder="549..."
                       value={loginForm.phone}
                       onChange={(e) => setLoginForm({ ...loginForm, phone: e.target.value })}
                     />
                   </div>
-                </div>
-
-                <div className="space-y-2">
-                  <label className="text-sm font-bold text-slate-300 ml-1">Contraseña</label>
-                  <div className="relative group">
-                    <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-emerald-500 transition-colors" size={20} />
+                  <div className="space-y-2">
+                    <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">Contraseña</label>
                     <input
                       type="password"
-                      required
+                      className="w-full bg-slate-50 border border-slate-100 rounded-[20px] py-4 px-6 text-sm font-bold text-slate-800 outline-none focus:ring-4 focus:ring-primary-100 transition-all"
                       placeholder="••••••••"
-                      className="w-full bg-slate-900 border border-slate-800 rounded-2xl py-4 pl-12 pr-4 text-white outline-none focus:ring-2 focus:ring-emerald-500 transition-all"
                       value={loginForm.password}
                       onChange={(e) => setLoginForm({ ...loginForm, password: e.target.value })}
                     />
                   </div>
-                </div>
-
-                <div className="space-y-2">
-                  <label className="text-sm font-bold text-slate-300 ml-1">Rol de Acceso</label>
-                  <div className="grid grid-cols-2 gap-4">
-                    <button
-                      type="button"
-                      onClick={() => setLoginForm({ ...loginForm, role: UserRole.CASHIER })}
-                      className={`py-4 rounded-2xl border-2 font-bold transition-all flex flex-col items-center gap-2 ${loginForm.role === UserRole.CASHIER
-                        ? 'bg-emerald-500/10 border-emerald-500 text-emerald-400'
-                        : 'bg-slate-900 border-slate-800 text-slate-500 hover:border-slate-700'
-                        }`}
-                    >
-                      <CreditCard size={24} />
-                      Cajero
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setLoginForm({ ...loginForm, role: UserRole.ADMIN })}
-                      className={`py-4 rounded-2xl border-2 font-bold transition-all flex flex-col items-center gap-2 ${loginForm.role === UserRole.ADMIN
-                        ? 'bg-emerald-500/10 border-emerald-500 text-emerald-400'
-                        : 'bg-slate-900 border-slate-800 text-slate-500 hover:border-slate-700'
-                        }`}
-                    >
-                      <Lock size={24} />
-                      Administrador
-                    </button>
+                  <div className="space-y-2">
+                    <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">Acceso</label>
+                    <div className="grid grid-cols-2 gap-3">
+                      {[UserRole.ADMIN, UserRole.CASHIER].map((role) => (
+                        <button
+                          key={role}
+                          type="button"
+                          onClick={() => setLoginForm({ ...loginForm, role })}
+                          className={`py-3.5 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all border ${loginForm.role === role ? 'bg-primary-600 border-primary-600 text-white shadow-lg shadow-primary-500/20' : 'bg-white border-slate-100 text-slate-400'}`}
+                        >
+                          {role}
+                        </button>
+                      ))}
+                    </div>
                   </div>
-                </div>
-
-                <button
-                  type="submit"
-                  className="w-full bg-emerald-500 hover:bg-emerald-600 text-white font-black py-5 rounded-2xl shadow-2xl shadow-emerald-500/20 transition-all flex items-center justify-center gap-2 group"
-                >
-                  Acceder al CRM
-                  <ChevronRight size={20} className="group-hover:translate-x-1 transition-transform" />
-                </button>
-
-                <p className="text-center text-slate-400 text-sm">
-                  ¿No tienes cuenta?{' '}
-                  <button
-                    type="button"
-                    onClick={() => setIsRegistering(true)}
-                    className="text-emerald-500 font-bold hover:underline"
-                  >
-                    Registrate aquí
+                  <button type="submit" className="w-full bg-slate-900 text-white py-5 rounded-[24px] font-black text-sm uppercase tracking-widest shadow-xl shadow-slate-900/10 flex items-center justify-center gap-3 group">
+                    Ingresar <ArrowRight size={20} className="group-hover:translate-x-1 transition-transform" />
                   </button>
-                </p>
-              </form>
-            )}
-
-            <div className="pt-8 text-center text-[10px] text-slate-700 uppercase tracking-widest font-bold">
-              Soporte Técnico CasinoHub &copy; 2024
+                  <button type="button" onClick={() => setIsRegistering(true)} className="w-full text-primary-600 text-[10px] font-black uppercase tracking-widest">
+                    Solicitar Acceso
+                  </button>
+                </form>
+              )}
             </div>
           </div>
         </div>
@@ -389,158 +320,167 @@ const App: React.FC = () => {
     );
   }
 
-  const unreadCount = notifications.filter(n => !n.isRead).length;
-
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-200">
-      <Sidebar
-        currentTab={currentTab}
-        setTab={setCurrentTab}
-        role={currentUser.role}
-        userName={currentUser.name}
-        onLogout={() => setCurrentUser(null)}
-        unreadNotifications={unreadCount}
-        onToggleNotifications={() => setIsNotificationPanelOpen(true)}
-      />
+    <div className="flex h-screen bg-[#F8FAFC] font-sans overflow-hidden">
+      {/* Sidebar - strictly fixed */}
+      <div className="w-64 h-full flex-shrink-0">
+        <Sidebar
+          currentTab={currentTab}
+          setTab={setCurrentTab}
+          role={currentUser.role}
+          userName={currentUser.name}
+          onLogout={() => setCurrentUser(null)}
+          unreadNotifications={notifications.filter(n => !n.isRead).length}
+          onToggleNotifications={() => setIsNotificationPanelOpen(true)}
+        />
+      </div>
 
-      <main className="ml-64 p-8 min-h-screen">
-        {currentTab === 'dashboard' && <Dashboard />}
-        {currentTab === 'validator' && (
-          <ReceiptValidator
-            currentUserId={currentUser.id}
-            onNotify={addNotification}
-          />
-        )}
-        {currentTab === 'chats' && <ConversationHistory />}
-        {currentTab === 'broadcasts' && currentUser.role === UserRole.ADMIN && (
-          <BulkMessaging onNotify={addNotification} />
-        )}
+      {/* Main Content Area */}
+      <div className="flex-1 flex flex-col min-w-0 overflow-hidden relative">
 
-        {currentTab === 'users' && currentUser.role === UserRole.ADMIN && (
-          <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
-            <div className="flex items-center justify-between">
-              <div>
-                <h2 className="text-3xl font-bold tracking-tight">Gestión de Usuarios</h2>
-                <p className="text-slate-400 mt-1">Administra los accesos y balances de jugadores y empleados.</p>
-              </div>
+        {/* Top Header - Rule 1 */}
+        <header className="h-[72px] bg-white border-b border-slate-100 flex items-center justify-between px-10 z-20 flex-shrink-0">
+          <div className="flex-1 max-w-2xl">
+            <div className="relative group">
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-primary-500 transition-colors" size={18} />
+              <input
+                type="text"
+                placeholder="Buscar en el sistema..."
+                className="w-full bg-slate-50 border border-transparent rounded-2xl py-2.5 pl-12 pr-4 text-sm font-bold text-slate-800 placeholder:text-slate-300 focus:bg-white focus:border-primary-100 focus:ring-4 focus:ring-primary-500/5 transition-all outline-none"
+              />
+            </div>
+          </div>
+
+          <div className="flex items-center gap-6">
+            <div className="flex items-center gap-2">
               <button
-                onClick={() => setIsImportOpen(!isImportOpen)}
-                className="bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 px-6 py-3 rounded-2xl flex items-center gap-2 font-bold transition-all"
+                onClick={() => setIsNotificationPanelOpen(true)}
+                className="relative p-2.5 bg-slate-50 text-slate-400 hover:text-primary-600 hover:bg-primary-50 rounded-xl transition-all"
               >
-                <UserPlus size={20} />
-                Importar CSV
+                <Bell size={20} />
+                {notifications.filter(n => !n.isRead).length > 0 && (
+                  <span className="absolute top-2 right-2 w-2 h-2 bg-rose-500 rounded-full border-2 border-white"></span>
+                )}
               </button>
             </div>
 
-            {isImportOpen && (
-              <div className="animate-in fade-in zoom-in-95 duration-300">
-                <UserImport onNotify={addNotification} onComplete={() => { fetchDbData(); setIsImportOpen(false); }} />
+            <div className="w-px h-6 bg-slate-100"></div>
+
+            <div className="flex items-center gap-3 pl-2">
+              <div className="text-right">
+                <p className="text-xs font-black text-slate-800 uppercase tracking-tight leading-none">{currentUser.name}</p>
+                <p className="text-[10px] font-black text-primary-600 uppercase tracking-widest mt-1 opacity-70">{currentUser.role}</p>
+              </div>
+              <div className="w-10 h-10 rounded-2xl bg-slate-900 flex items-center justify-center font-black text-white text-xs shadow-lg">
+                {currentUser.name.charAt(0)}
+              </div>
+            </div>
+          </div>
+        </header>
+
+        {/* Content Container */}
+        <div className="flex-1 overflow-auto bg-[#F8FAFC]">
+          <div className="h-full">
+            {currentTab === 'dashboard' && <Dashboard />}
+            {currentTab === 'validator' && <ReceiptValidator currentUserId={currentUser.id} onNotify={addNotification} />}
+            {currentTab === 'chats' && <ConversationHistory />}
+            {currentTab === 'broadcasts' && <BulkMessaging onNotify={addNotification} />}
+            {currentTab === 'config' && <PaymentSettingsModule />}
+
+            {currentTab === 'users' && (
+              <div className="p-10 space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                <div className="flex justify-between items-center">
+                  <h2 className="text-3xl font-black text-slate-800 tracking-tight">Gestión Personal</h2>
+                  <button onClick={() => setIsImportOpen(!isImportOpen)} className="bg-primary-600 text-white px-6 py-3 rounded-2xl font-bold text-sm shadow-xl shadow-primary-500/20 flex items-center gap-2">
+                    <UserPlus size={20} /> Importar Datos
+                  </button>
+                </div>
+
+                {isImportOpen && (
+                  <div className="bg-white p-6 rounded-[32px] border border-slate-100 shadow-sm animate-in zoom-in-95 duration-300">
+                    <UserImport onNotify={addNotification} onComplete={() => { fetchDbData(); setIsImportOpen(false); }} />
+                  </div>
+                )}
+
+                <div className="bg-white rounded-[32px] border border-slate-100 shadow-sm overflow-hidden">
+                  <table className="w-full text-left">
+                    <thead className="bg-slate-50/50 text-[10px] font-black uppercase tracking-widest text-slate-400 border-b border-slate-50">
+                      <tr>
+                        <th className="px-8 py-5">Nombre</th>
+                        <th className="px-8 py-5">WhatsApp</th>
+                        <th className="px-8 py-5">Rol</th>
+                        <th className="px-8 py-5">Balance</th>
+                        <th className="px-8 py-5 text-right">Acciones</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-50">
+                      {dbUsers.map(u => (
+                        <tr key={u.id} className="hover:bg-slate-50/50 transition-colors">
+                          <td className="px-8 py-5 font-bold text-slate-700">{u.name}</td>
+                          <td className="px-8 py-5 font-mono text-xs text-slate-400">{u.phone}</td>
+                          <td className="px-8 py-5">
+                            <span className="px-3 py-1 bg-primary-50 text-primary-600 text-[10px] font-black rounded-full uppercase">{u.role}</span>
+                          </td>
+                          <td className="px-8 py-5 font-black text-slate-800">${u.balance.toLocaleString()}</td>
+                          <td className="px-8 py-5 text-right">
+                            <button className="text-[10px] font-black uppercase text-slate-300 hover:text-primary-600 transition-colors">Ajustes</button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
               </div>
             )}
 
-            <div className="bg-slate-800/40 border border-slate-700/50 rounded-3xl overflow-hidden">
-              <table className="w-full text-left">
-                <thead>
-                  <tr className="bg-slate-900/50 text-slate-400 text-xs font-bold uppercase tracking-widest border-b border-slate-700/50">
-                    <th className="px-6 py-5">Nombre</th>
-                    <th className="px-6 py-5">WhatsApp</th>
-                    <th className="px-6 py-5">Rol</th>
-                    <th className="px-6 py-5">Balance</th>
-                    <th className="px-6 py-5">Estado</th>
-                    <th className="px-6 py-5 text-right">Acciones</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-700/30">
-                  {dbUsers.map((user) => (
-                    <tr key={user.id} className="hover:bg-slate-800/20 transition-colors group">
-                      <td className="px-6 py-5">
-                        <div className="flex items-center gap-3">
-                          <div className="w-9 h-9 bg-slate-700 rounded-full flex items-center justify-center text-emerald-400 font-bold text-sm">
-                            {user.name.charAt(0)}
-                          </div>
-                          <span className="font-semibold text-white">{user.name}</span>
-                        </div>
-                      </td>
-                      <td className="px-6 py-5 text-slate-400 font-mono text-sm">{user.phone}</td>
-                      <td className="px-6 py-5">
-                        <span className={`px-2 py-1 rounded-lg text-[10px] font-bold uppercase ${user.role === UserRole.ADMIN ? 'bg-amber-500/10 text-amber-500' : 'bg-blue-500/10 text-blue-500'}`}>
-                          {user.role}
-                        </span>
-                      </td>
-                      <td className="px-6 py-5 font-bold text-emerald-400">${user.balance.toLocaleString()}</td>
-                      <td className="px-6 py-5">
-                        <span className="flex items-center gap-2 text-xs font-semibold text-emerald-400">
-                          <div className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse"></div>
-                          Activo
-                        </span>
-                      </td>
-                      <td className="px-6 py-5 text-right">
-                        <button className="text-slate-500 hover:text-white transition-colors">Ver Detalles</button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+            {currentTab === 'transactions' && (
+              <div className="p-10 space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                <h2 className="text-3xl font-black text-slate-800 tracking-tight">Movimientos</h2>
+                <div className="bg-white rounded-[32px] border border-slate-100 shadow-sm overflow-hidden">
+                  <table className="w-full text-left">
+                    <thead className="bg-slate-50/50 text-[10px] font-black uppercase tracking-widest text-slate-400 border-b border-slate-50">
+                      <tr>
+                        <th className="px-8 py-5">ID / Fecha</th>
+                        <th className="px-8 py-5">Usuario</th>
+                        <th className="px-8 py-5">Tipo</th>
+                        <th className="px-8 py-5">Monto</th>
+                        <th className="px-8 py-5">Estado</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-50 font-bold">
+                      {dbTransactions.map(tx => (
+                        <tr key={tx.id} className="hover:bg-slate-50/50 transition-colors text-xs">
+                          <td className="px-8 py-5">
+                            <p className="text-slate-800 uppercase">{tx.id.substring(0, 8)}</p>
+                            <p className="text-[9px] text-slate-300 uppercase">{new Date(tx.timestamp).toLocaleString()}</p>
+                          </td>
+                          <td className="px-8 py-5 text-slate-600">
+                            {dbUsers.find(u => u.id === tx.userId)?.name || 'Anónimo'}
+                          </td>
+                          <td className="px-8 py-5">
+                            <span className={`px-2 py-0.5 rounded-lg text-[9px] uppercase ${tx.type === TransactionType.DEPOSIT ? 'bg-emerald-50 text-emerald-600' : 'bg-rose-50 text-rose-600'}`}>{tx.type}</span>
+                          </td>
+                          <td className="px-8 py-5 text-slate-800 font-black text-sm">${tx.amount.toLocaleString()}</td>
+                          <td className="px-8 py-5">
+                            <span className="text-emerald-500 uppercase text-[10px]">Aprobado</span>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            )}
           </div>
-        )}
+        </div>
+      </div>
 
-        {currentTab === 'transactions' && (
-          <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
-            <div>
-              <h2 className="text-3xl font-bold tracking-tight">Historial Financiero</h2>
-              <p className="text-slate-400 mt-1">Registro detallado de todos los movimientos de la plataforma.</p>
-            </div>
-
-            <div className="bg-slate-800/40 border border-slate-700/50 rounded-3xl overflow-hidden">
-              <table className="w-full text-left">
-                <thead>
-                  <tr className="bg-slate-900/50 text-slate-400 text-xs font-bold uppercase tracking-widest border-b border-slate-700/50">
-                    <th className="px-6 py-5">ID / Fecha</th>
-                    <th className="px-6 py-5">Usuario</th>
-                    <th className="px-6 py-5">Tipo</th>
-                    <th className="px-6 py-5">Monto</th>
-                    <th className="px-6 py-5">Referencia MP</th>
-                    <th className="px-6 py-5">Estado</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-700/30">
-                  {dbTransactions.map((tx) => (
-                    <tr key={tx.id} className="hover:bg-slate-800/20 transition-colors">
-                      <td className="px-6 py-5">
-                        <p className="text-sm font-bold text-white uppercase">{tx.id.substring(0, 8)}</p>
-                        <p className="text-xs text-slate-500">{new Date(tx.timestamp).toLocaleString()}</p>
-                      </td>
-                      <td className="px-6 py-5 text-slate-300 font-medium">
-                        {dbUsers.find(u => u.id === tx.userId)?.name || 'Desconocido'}
-                      </td>
-                      <td className="px-6 py-5">
-                        <span className={`px-2 py-1 rounded-lg text-[10px] font-bold uppercase ${tx.type === TransactionType.DEPOSIT ? 'bg-emerald-500/10 text-emerald-400' : 'bg-rose-500/10 text-rose-400'}`}>
-                          {tx.type}
-                        </span>
-                      </td>
-                      <td className="px-6 py-5 font-bold text-lg">${tx.amount.toLocaleString()}</td>
-                      <td className="px-6 py-5 text-slate-500 font-mono text-xs">{tx.externalRef}</td>
-                      <td className="px-6 py-5 text-emerald-400 text-xs font-bold">
-                        {tx.status === TransactionStatus.APPROVED ? 'APROBADO' : tx.status}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        )}
-      </main>
-
-      {/* Toast Layer */}
       <div className="fixed bottom-6 right-6 z-[60] flex flex-col items-end pointer-events-none">
         {toasts.map(toast => (
           <NotificationToast key={toast.id} notification={toast} onDismiss={dismissToast} />
         ))}
       </div>
 
-      {/* Panel */}
       <NotificationPanel
         notifications={notifications}
         isOpen={isNotificationPanelOpen}

@@ -2,7 +2,7 @@
 import { User, UserRole, Transaction, TransactionStatus, TransactionType, Message, PaymentSettings, WhatsAppSettings, AppSettings } from "../types";
 import { supabase } from "./supabaseClient";
 
-const DEFAULT_AI_PROMPT = `Eres el asistente oficial de CasinoHub. 
+const DEFAULT_AI_PROMPT = `Eres el asistente oficial de Flowbi. 
 Tu tono debe ser emocionante, profesional y persuasivo. Usa emojis de casino (🎰, 💰, 🔥).
 
 Reglas:
@@ -15,8 +15,8 @@ Alias: {{alias}}
 
 const INITIAL_SETTINGS: AppSettings = {
   payment: {
-    holderName: 'CASINO HUB OFICIAL',
-    alias: 'casino.hub.mp',
+    holderName: 'FLOWBI OFICIAL',
+    alias: 'flowbi.mp',
     cvu: '0000003100012345678901',
     bankName: 'Mercado Pago',
     isActive: true,
@@ -26,8 +26,8 @@ const INITIAL_SETTINGS: AppSettings = {
     accessToken: '',
     phoneNumberId: '',
     wabaId: '',
-    verifyToken: 'casino_hub_secure_token_2024',
-    webhookUrl: 'https://api.casinohub.crm/webhooks/whatsapp',
+    verifyToken: 'flowbi_secure_token_2024',
+    webhookUrl: 'https://api.flowbi.crm/webhooks/whatsapp',
     isConnected: false,
     globalAutopilot: false,
     aiPrompt: DEFAULT_AI_PROMPT,

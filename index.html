@@ -1,34 +1,97 @@
-
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Casino Hub CRM - WhatsApp Management</title>
+    <title>Flowbi CRM - WhatsApp Management</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
         body {
             font-family: 'Inter', sans-serif;
-            background-color: #0f172a;
-            color: #f8fafc;
+            background-color: #F8FAFC;
+            color: #1E293B;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
         }
-        /* Custom scrollbar */
+
+        /* Custom scrollbar for light theme */
         ::-webkit-scrollbar {
-            width: 8px;
+            width: 6px;
+            height: 6px;
         }
+
         ::-webkit-scrollbar-track {
-            background: #1e293b;
+            background: transparent;
         }
+
         ::-webkit-scrollbar-thumb {
-            background: #334155;
-            border-radius: 4px;
+            background: #E2E8F0;
+            border-radius: 20px;
         }
+
         ::-webkit-scrollbar-thumb:hover {
-            background: #475569;
+            background: #CBD5E1;
+        }
+
+        /* Global Transitions */
+        * {
+            transition: background-color 0.2s ease, border-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        /* Status tags & layout specific styles */
+        .status-pill {
+            padding: 4px 12px;
+            border-radius: 9999px;
+            font-size: 0.7rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        /* Hide scrollbars for specific containers while keeping functionality */
+        .scrollbar-none::-webkit-scrollbar {
+            display: none;
+        }
+
+        .scrollbar-none {
+            -ms-overflow-style: none;
+            /* IE and Edge */
+            scrollbar-width: none;
+            /* Firefox */
         }
     </style>
-<script type="importmap">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: {
+                            50: '#F0F7FF',
+                            100: '#E0EEFF',
+                            200: '#BADBFF',
+                            300: '#7CC1FF',
+                            400: '#339FFF',
+                            500: '#007FFF',
+                            600: '#0061CC',
+                            700: '#004A99',
+                            800: '#003166',
+                            900: '#001833',
+                            DEFAULT: '#007FFF'
+                        },
+                        sidebar: '#FBFBFE'
+                    },
+                    borderRadius: {
+                        '3xl': '24px',
+                        '4xl': '32px',
+                        '5xl': '40px'
+                    }
+                }
+            }
+        }
+    </script>
+    <script type="importmap">
 {
   "imports": {
     "@google/genai": "https://esm.sh/@google/genai@^1.35.0",
@@ -39,10 +102,12 @@
   }
 }
 </script>
-<link rel="stylesheet" href="/index.css">
+
 </head>
+
 <body>
     <div id="root"></div>
-<script type="module" src="/index.tsx"></script>
+    <script type="module" src="/index.tsx"></script>
 </body>
+
 </html>

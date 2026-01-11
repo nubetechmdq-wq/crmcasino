@@ -1,3 +1,4 @@
+
 import React, { useState, useMemo, useEffect, useRef } from 'react';
 import {
   Search,
@@ -10,7 +11,16 @@ import {
   Sparkles,
   Loader2,
   Zap,
-  Bot
+  Bot,
+  X,
+  User as UserIcon,
+  Phone,
+  Calendar,
+  ShieldCheck,
+  Ban,
+  Wallet,
+  Settings,
+  Info
 } from 'lucide-react';
 import { StorageService } from '../services/mockData';
 import { generateWhatsAppResponse } from '../services/geminiService';
@@ -29,20 +39,14 @@ const ConversationHistory: React.FC = () => {
   const chatEndRef = useRef<HTMLDivElement>(null);
 
   const fetchInitialData = async () => {
-    console.log('📱 ConversationHistory: Fetching initial data...');
     setIsLoading(true);
     try {
       const u = await StorageService.getUsers();
       const m = await StorageService.getMessages();
-      console.log('📱 Users loaded:', u.length, u);
-      console.log('📱 Messages loaded:', m.length, m);
       setUsers(u);
       setMessages(m);
       if (u.length > 0 && !selectedUser) {
         setSelectedUser(u[0]);
-        console.log('📱 Selected first user:', u[0]);
-      } else {
-        console.warn('⚠️ No users found or user already selected');
       }
       setIsLoading(false);
     } catch (error) {
@@ -118,208 +122,245 @@ const ConversationHistory: React.FC = () => {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-full">
-        <Loader2 className="animate-spin text-emerald-500" size={48} />
-      </div>
-    );
-  }
-
-  // Show empty state if no users
-  if (users.length === 0) {
-    return (
-      <div className="flex flex-col items-center justify-center h-full text-center p-8">
-        <div className="w-24 h-24 bg-slate-800 rounded-full flex items-center justify-center mb-4">
-          <Send size={48} className="text-slate-600" />
-        </div>
-        <h3 className="text-xl font-bold text-white mb-2">No hay conversaciones</h3>
-        <p className="text-slate-400 max-w-md">
-          No se encontraron usuarios con conversaciones. Los mensajes aparecerán aquí cuando los usuarios interactúen con el sistema.
-        </p>
-      </div>
-    );
-  }
-
-  // If we have users but no selected user, select the first one
-  if (!selectedUser && users.length > 0) {
-    setSelectedUser(users[0]);
-    return (
-      <div className="flex items-center justify-center h-full">
-        <Loader2 className="animate-spin text-emerald-500" size={48} />
+        <Loader2 className="animate-spin text-primary-600" size={48} />
       </div>
     );
   }
 
   return (
-    <div className="h-[calc(100vh-140px)] flex bg-slate-900 rounded-3xl overflow-hidden border border-slate-800 shadow-2xl animate-in fade-in duration-700">
-      {/* Sidebar List */}
-      <div className="w-80 border-r border-slate-800 flex flex-col bg-slate-900/50">
-        <div className="p-4 border-b border-slate-800">
+    <div className="h-full flex bg-white overflow-hidden animate-in fade-in duration-700">
+
+      {/* Column 1: Chat List - Rule 2 */}
+      <div className="w-80 border-r border-slate-100 flex flex-col bg-slate-50/20">
+        <div className="p-6">
+          <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-4">Chat Activos</h3>
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" size={18} />
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300" size={16} />
             <input
               type="text"
-              placeholder="Buscar chat..."
-              className="w-full bg-slate-800 border-none rounded-xl py-2 pl-10 pr-4 text-sm focus:ring-1 focus:ring-emerald-500 outline-none"
+              placeholder="Buscar jugador..."
+              className="w-full bg-white border border-slate-100 rounded-xl py-2.5 pl-10 pr-4 text-xs font-bold outline-none focus:ring-4 focus:ring-primary-500/5 transition-all"
             />
           </div>
         </div>
-        <div className="flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-slate-800">
+        <div className="flex-1 overflow-y-auto px-3 pb-6 space-y-1 scrollbar-none">
           {users.map((user) => (
             <button
               key={user.id}
               onClick={() => setSelectedUser(user)}
-              className={`w-full p-4 flex items-center gap-3 transition-colors border-b border-slate-800/50 ${selectedUser.id === user.id ? 'bg-slate-800' : 'hover:bg-slate-800/40'
+              className={`w-full p-4 flex items-center gap-3 rounded-2xl transition-all ${selectedUser?.id === user.id
+                ? 'bg-white shadow-md border border-slate-100 ring-1 ring-black/5'
+                : 'hover:bg-white/50 border border-transparent'
                 }`}
             >
               <div className="relative">
-                <div className="w-12 h-12 rounded-full bg-slate-700 flex-shrink-0 flex items-center justify-center font-bold text-emerald-400 border border-slate-600">
+                <div className="w-10 h-10 rounded-2xl bg-primary-50 flex items-center justify-center font-black text-primary-600 shadow-inner">
                   {user.name.charAt(0)}
                 </div>
                 {user.autopilotEnabled && (
-                  <div className="absolute -top-1 -right-1 bg-emerald-500 text-white p-1 rounded-full animate-pulse shadow-lg">
-                    <Zap size={10} fill="currentColor" />
+                  <div className="absolute -top-1 -right-1 bg-emerald-500 text-white p-1 rounded-lg shadow-lg border-2 border-white">
+                    <Zap size={8} fill="currentColor" />
                   </div>
                 )}
               </div>
               <div className="text-left overflow-hidden flex-1">
-                <div className="flex justify-between items-baseline">
-                  <h4 className="font-semibold text-sm truncate text-white">{user.name}</h4>
-                  <span className="text-[10px] text-slate-500">Ahora</span>
+                <div className="flex justify-between items-baseline mb-0.5">
+                  <h4 className="font-black text-xs text-slate-800 truncate">{user.name}</h4>
+                  <span className="text-[8px] font-black text-slate-300 uppercase">10m</span>
                 </div>
-                <p className="text-xs text-slate-500 truncate">${user.balance.toLocaleString()} • {user.phone}</p>
+                <p className="text-[10px] text-slate-400 font-bold truncate tracking-wide">{user.phone}</p>
               </div>
             </button>
           ))}
         </div>
       </div>
 
-      {/* Main Chat Area */}
-      <div className="flex-1 flex flex-col bg-[#0b141a]">
-        {/* Chat Header */}
-        <div className="p-4 bg-slate-800/80 backdrop-blur-md flex items-center justify-between border-b border-slate-700/50 z-10">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full bg-slate-700 flex items-center justify-center font-bold text-emerald-400">
-              {selectedUser.name.charAt(0)}
-            </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <h4 className="font-bold text-sm text-white">{selectedUser.name}</h4>
-                {selectedUser.autopilotEnabled && (
-                  <span className="flex items-center gap-1 bg-emerald-500/20 text-emerald-400 text-[8px] font-black uppercase px-1.5 py-0.5 rounded border border-emerald-500/30">
-                    <Bot size={10} /> Autopilot On
-                  </span>
-                )}
+      {/* Column 2: Chat Window - Rule 2 */}
+      <div className="flex-1 flex flex-col bg-white overflow-hidden relative">
+        {selectedUser ? (
+          <>
+            {/* Thread Header */}
+            <div className="px-8 py-4 border-b border-slate-50 flex justify-between items-center bg-white/80 backdrop-blur-md z-10">
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 rounded-xl bg-slate-900 flex items-center justify-center font-black text-white text-[10px]">
+                  {selectedUser.name.charAt(0)}
+                </div>
+                <div>
+                  <h4 className="font-black text-sm text-slate-800">{selectedUser.name}</h4>
+                  <p className="text-[9px] text-emerald-500 font-black uppercase tracking-widest">En Línea</p>
+                </div>
               </div>
-              <span className="text-[10px] text-emerald-400 font-medium">Balance: ${selectedUser.balance.toLocaleString()}</span>
+              <div className="flex items-center gap-2">
+                <button onClick={handleAiSuggest} disabled={isGeneratingIA} className="p-2 bg-primary-50 text-primary-600 rounded-xl hover:bg-primary-100 transition-all">
+                  {isGeneratingIA ? <Loader2 size={18} className="animate-spin" /> : <Sparkles size={18} />}
+                </button>
+                <button className="p-2 text-slate-300 hover:text-slate-600 transition-all">
+                  <MoreVertical size={20} />
+                </button>
+              </div>
             </div>
-          </div>
-          <div className="flex items-center gap-3">
-            <button
-              onClick={toggleAutopilot}
-              className={`flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-bold transition-all border ${selectedUser.autopilotEnabled
-                ? 'bg-emerald-500/10 border-emerald-500 text-emerald-400'
-                : 'bg-slate-700/50 border-slate-600 text-slate-400 hover:text-white'
-                }`}
-            >
-              <Zap size={14} className={selectedUser.autopilotEnabled ? 'fill-current' : ''} />
-              {selectedUser.autopilotEnabled ? 'AUTO: ON' : 'AUTO: OFF'}
-            </button>
-            <button
-              onClick={copyPaymentInfo}
-              className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all shadow-lg ${copiedField === 'all' ? 'bg-emerald-500 text-white' : 'bg-slate-700 text-slate-300 hover:bg-slate-600'
-                }`}
-            >
-              {copiedField === 'all' ? <Check size={14} /> : <CreditCard size={14} />}
-              DATOS MP
-            </button>
-            <div className="w-px h-6 bg-slate-700"></div>
-            <MoreVertical size={20} className="text-slate-400 cursor-pointer hover:text-white" />
-          </div>
-        </div>
 
-        {/* Messages */}
-        <div className="flex-1 overflow-y-auto p-6 space-y-4 bg-[url('https://user-images.githubusercontent.com/15075759/28719144-86dc0f70-73b1-11e7-911d-60d70fcded21.png')] bg-repeat opacity-90 scroll-smooth">
-          {chatMessages.map((msg) => (
-            <div key={msg.id} className={`flex ${msg.isIncoming ? 'justify-start' : 'justify-end'}`}>
-              <div className={`max-w-[75%] p-3 rounded-2xl shadow-sm relative group ${msg.isIncoming ? 'bg-slate-800 text-slate-200 rounded-tl-none' : 'bg-emerald-600 text-white rounded-tr-none'
-                }`}>
-                {msg.sentByAI && (
-                  <div className="flex items-center gap-1 text-[8px] font-black uppercase text-emerald-200 mb-1 tracking-widest opacity-80">
-                    <Bot size={10} /> Respuesta Automática
+            {/* Messages Area */}
+            <div className="flex-1 overflow-y-auto p-8 space-y-6 bg-slate-50/10 scrollbar-none">
+              {chatMessages.map((msg) => (
+                <div key={msg.id} className={`flex ${msg.isIncoming ? 'justify-start' : 'justify-end'}`}>
+                  <div className={`max-w-[80%] flex flex-col ${msg.isIncoming ? 'items-start' : 'items-end'}`}>
+                    {msg.sentByAI && (
+                      <div className="flex items-center gap-1.5 px-3 py-1 bg-primary-50 rounded-full mb-2 border border-primary-100">
+                        <Bot size={10} className="text-primary-600" />
+                        <span className="text-[9px] font-black text-primary-600 uppercase tracking-widest leading-none">AI Response</span>
+                      </div>
+                    )}
+                    <div className={`p-4 rounded-[24px] shadow-sm text-sm font-medium leading-relaxed ${msg.isIncoming
+                      ? 'bg-white text-slate-700 border border-slate-100 rounded-tl-none'
+                      : 'bg-primary-600 text-white shadow-xl shadow-primary-600/10 rounded-tr-none'
+                      }`}>
+                      <p className="whitespace-pre-wrap">{msg.text}</p>
+                    </div>
+                    <div className="flex items-center gap-2 mt-2 px-1">
+                      <span className="text-[9px] font-bold text-slate-300 uppercase">
+                        {new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                      </span>
+                      {!msg.isIncoming && <Check size={10} className="text-primary-400" />}
+                    </div>
                   </div>
-                )}
-                <p className="text-sm whitespace-pre-wrap">{msg.text}</p>
-                <div className="flex justify-end mt-1 items-center gap-1">
-                  <span className={`text-[10px] ${msg.isIncoming ? 'text-slate-500' : 'text-emerald-100'}`}>
-                    {new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                  </span>
-                  {!msg.isIncoming && <Check size={10} className="text-emerald-100" />}
+                </div>
+              ))}
+              <div ref={chatEndRef} />
+            </div>
+
+            {/* AI Suggestion Box */}
+            {aiSuggestion && (
+              <div className="mx-8 mb-4 p-5 bg-primary-50/80 border border-primary-100 rounded-[28px] animate-in slide-in-from-bottom-4 duration-300 shadow-lg">
+                <div className="flex items-center justify-between mb-3 text-primary-600 pr-2">
+                  <div className="flex items-center gap-2 font-black text-[9px] uppercase tracking-[0.2em]">
+                    <Sparkles size={14} /> Sugerencia de AI
+                  </div>
+                  <button onClick={() => setAiSuggestion(null)}><X size={14} /></button>
+                </div>
+                <p className="text-xs text-slate-600 font-medium italic mb-4 leading-relaxed">"{aiSuggestion}"</p>
+                <div className="flex gap-2">
+                  <button onClick={useSuggestion} className="flex-1 bg-white text-slate-600 text-[10px] font-black uppercase tracking-widest py-2.5 rounded-xl border border-slate-100 shadow-sm transition-all hover:bg-slate-50">Editar</button>
+                  <button onClick={() => sendMessage(aiSuggestion, true)} className="flex-1 bg-primary-600 text-white text-[10px] font-black uppercase tracking-widest py-2.5 rounded-xl shadow-md transition-all hover:bg-primary-700">Enviar Ahora</button>
+                </div>
+              </div>
+            )}
+
+            {/* Input Area */}
+            <div className="p-6 bg-white border-t border-slate-50">
+              <div className="flex items-center gap-4 bg-slate-50/50 p-2 rounded-[28px] border border-slate-100 focus-within:bg-white focus-within:ring-4 focus-within:ring-primary-500/5 transition-all">
+                <button className="p-3 text-slate-300 hover:text-primary-600 transition-colors">
+                  <Paperclip size={20} />
+                </button>
+                <input
+                  type="text"
+                  placeholder="Escribe un mensaje..."
+                  value={inputText}
+                  onChange={(e) => setInputText(e.target.value)}
+                  onKeyPress={(e) => e.key === 'Enter' && sendMessage(inputText)}
+                  className="flex-1 bg-transparent border-none py-3 text-sm font-bold text-slate-800 placeholder:text-slate-300 outline-none"
+                />
+                <button
+                  onClick={() => sendMessage(inputText)}
+                  className="w-12 h-12 bg-slate-900 rounded-full flex items-center justify-center text-white shadow-xl hover:scale-105 transition-all active:scale-95"
+                >
+                  <Send size={18} />
+                </button>
+              </div>
+            </div>
+          </>
+        ) : (
+          <div className="flex-1 flex flex-col items-center justify-center text-center opacity-20">
+            <UserIcon size={64} className="mb-4" />
+            <h3 className="font-black uppercase tracking-[0.3em]">Selecciona un Chat</h3>
+          </div>
+        )}
+      </div>
+
+      {/* Column 3: User Detail - Rule 2 (Mandatory) */}
+      <div className="w-80 border-l border-slate-100 bg-slate-50/30 overflow-y-auto scrollbar-none flex flex-col">
+        {selectedUser ? (
+          <div className="p-8 space-y-8 animate-in slide-in-from-right-4 duration-500">
+            {/* Profile Card */}
+            <div className="bg-white p-6 rounded-[32px] border border-slate-100 shadow-sm text-center">
+              <div className="w-20 h-20 bg-slate-100 rounded-[32px] flex items-center justify-center mx-auto mb-4 border-4 border-slate-50">
+                <UserIcon size={32} className="text-slate-400" />
+              </div>
+              <h3 className="text-lg font-black text-slate-800 tracking-tight">{selectedUser.name}</h3>
+              <p className="text-xs font-bold text-slate-400 mt-1">{selectedUser.phone}</p>
+              <div className="mt-4 flex flex-col gap-2">
+                <span className={`px-4 py-1.5 rounded-full text-[9px] font-black uppercase tracking-widest ${selectedUser.status === 'ACTIVE' ? 'bg-emerald-50 text-emerald-600' : 'bg-rose-50 text-rose-600'}`}>
+                  Estado: {selectedUser.status}
+                </span>
+              </div>
+            </div>
+
+            {/* Financial Summary */}
+            <div className="space-y-3">
+              <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-4">Resumen Financiero</h4>
+              <div className="bg-white p-5 rounded-[28px] border border-slate-100 shadow-sm flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="p-2.5 bg-emerald-50 text-emerald-600 rounded-xl">
+                    <Wallet size={18} />
+                  </div>
+                  <span className="text-sm font-bold text-slate-600">Balance</span>
+                </div>
+                <span className="text-lg font-black text-slate-800">${selectedUser.balance.toLocaleString()}</span>
+              </div>
+            </div>
+
+            {/* Settings & AI */}
+            <div className="space-y-3">
+              <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-4">Configuración del Chat</h4>
+              <div className="bg-white p-4 rounded-[28px] border border-slate-100 shadow-sm space-y-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className={`p-2 rounded-xl transition-colors ${selectedUser.autopilotEnabled ? 'bg-emerald-50 text-emerald-600' : 'bg-slate-50 text-slate-300'}`}>
+                      <Zap size={16} fill={selectedUser.autopilotEnabled ? "currentColor" : "none"} />
+                    </div>
+                    <span className="text-xs font-black text-slate-700 uppercase tracking-tight">AI Autopilot</span>
+                  </div>
+                  <button
+                    onClick={toggleAutopilot}
+                    className={`w-10 h-6 rounded-full transition-all relative ${selectedUser.autopilotEnabled ? 'bg-emerald-500' : 'bg-slate-200'}`}
+                  >
+                    <div className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-all ${selectedUser.autopilotEnabled ? 'left-5' : 'left-1'}`}></div>
+                  </button>
                 </div>
               </div>
             </div>
-          ))}
-          <div ref={chatEndRef} />
-        </div>
 
-        {/* Suggestion Box */}
-        {aiSuggestion && (
-          <div className="px-4 py-3 bg-emerald-500/10 border-t border-emerald-500/20 animate-in slide-in-from-bottom-2 duration-300">
-            <div className="flex items-center justify-between mb-2">
-              <div className="flex items-center gap-2 text-emerald-400 font-bold text-[10px] uppercase tracking-widest">
-                <Sparkles size={14} /> IA: Sugerencia de Respuesta
+            {/* Quick Actions */}
+            <div className="space-y-3">
+              <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-4">Acciones Rápidas</h4>
+              <div className="grid grid-cols-2 gap-3">
+                <button onClick={copyPaymentInfo} className="p-4 bg-white border border-slate-100 rounded-[24px] shadow-sm hover:bg-slate-50 transition-all flex flex-col items-center gap-2 group">
+                  <CreditCard size={20} className="text-slate-400 group-hover:text-primary-600 transition-colors" />
+                  <span className="text-[9px] font-black uppercase text-slate-500">Enviar Datos</span>
+                </button>
+                <button className="p-4 bg-white border border-slate-100 rounded-[24px] shadow-sm hover:bg-slate-50 transition-all flex flex-col items-center gap-2 group">
+                  <Ban size={20} className="text-slate-400 group-hover:text-rose-500 transition-colors" />
+                  <span className="text-[9px] font-black uppercase text-slate-500">Bloquear</span>
+                </button>
               </div>
-              <button onClick={() => setAiSuggestion(null)} className="text-slate-500 hover:text-white"><Check size={14} /></button>
-            </div>
-            <p className="text-xs text-slate-300 italic line-clamp-2 mb-2">"{aiSuggestion}"</p>
-            <div className="flex gap-2">
-              <button
-                onClick={useSuggestion}
-                className="bg-emerald-500/20 hover:bg-emerald-500 text-emerald-400 hover:text-white text-[10px] font-bold px-3 py-1.5 rounded-lg transition-all border border-emerald-500/30"
-              >
-                EDITAR RESPUESTA
-              </button>
-              <button
-                onClick={() => sendMessage(aiSuggestion, true)}
-                className="bg-emerald-500 hover:bg-emerald-600 text-white text-[10px] font-bold px-3 py-1.5 rounded-lg transition-all shadow-lg"
-              >
-                ENVIAR AHORA
+              <button className="w-full mt-2 p-4 bg-slate-900 hover:bg-slate-800 text-white rounded-[24px] shadow-lg shadow-slate-900/10 text-[10px] font-black uppercase tracking-[0.2em] transition-all">
+                Cargar Saldo
               </button>
             </div>
+
+            {/* Info */}
+            <div className="bg-primary-50/50 p-5 rounded-[28px] border border-primary-100 flex items-start gap-4">
+              <Info size={16} className="text-primary-600 mt-0.5" />
+              <p className="text-[10px] text-primary-900/60 font-bold leading-relaxed">
+                Todos los mensajes son monitoreados y registrados para su seguridad.
+              </p>
+            </div>
+          </div>
+        ) : (
+          <div className="flex-1 flex items-center justify-center p-10 opacity-10">
+            <Settings size={48} />
           </div>
         )}
-
-        {/* Input area */}
-        <div className="p-4 bg-slate-800/80 border-t border-slate-700/50 flex items-center gap-4">
-          <div className="flex items-center gap-3 text-slate-400">
-            <Smile size={22} className="cursor-pointer hover:text-emerald-400 transition-colors" />
-            <Paperclip size={22} className="cursor-pointer hover:text-emerald-400 transition-colors" />
-          </div>
-
-          <div className="flex-1 relative">
-            <input
-              type="text"
-              placeholder={selectedUser.autopilotEnabled ? "IA monitoreando conversación..." : "Escribe un mensaje..."}
-              value={inputText}
-              onChange={(e) => setInputText(e.target.value)}
-              onKeyPress={(e) => e.key === 'Enter' && sendMessage(inputText)}
-              className="w-full bg-slate-900 border-none rounded-2xl py-3.5 px-4 text-sm text-white focus:ring-2 focus:ring-emerald-500/50 transition-all outline-none"
-            />
-            <button
-              onClick={handleAiSuggest}
-              disabled={isGeneratingIA}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-emerald-500 hover:text-emerald-400 disabled:opacity-50 transition-all p-1.5 hover:bg-emerald-500/10 rounded-xl"
-              title="Analizar chat y sugerir"
-            >
-              {isGeneratingIA ? <Loader2 size={18} className="animate-spin" /> : <Sparkles size={18} />}
-            </button>
-          </div>
-
-          <button
-            onClick={() => sendMessage(inputText)}
-            className="w-12 h-12 bg-emerald-500 rounded-full flex items-center justify-center text-white shadow-lg shadow-emerald-500/20 hover:bg-emerald-600 transition-all hover:scale-105 active:scale-95"
-          >
-            <Send size={20} />
-          </button>
-        </div>
       </div>
     </div>
   );
