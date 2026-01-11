@@ -34,7 +34,7 @@ const Sidebar: React.FC<SidebarProps> = ({
 }) => {
   const menuItems = [
     { id: 'dashboard', icon: BarChart3, label: 'Panel de Control', roles: [UserRole.ADMIN, UserRole.CASHIER] },
-    { id: 'chats', icon: MessageSquare, label: 'Chat Jugadores', roles: [UserRole.ADMIN, UserRole.CASHIER] },
+    { id: 'chats', icon: MessageSquare, label: 'Mensajes', roles: [UserRole.ADMIN, UserRole.CASHIER] },
     { id: 'validator', icon: FileCheck, label: 'Carga de Saldo', roles: [UserRole.ADMIN, UserRole.CASHIER] },
     { id: 'transactions', icon: CreditCard, label: 'Movimientos', roles: [UserRole.ADMIN, UserRole.CASHIER] },
     { id: 'users', icon: Users, label: 'Gestión Personal', roles: [UserRole.ADMIN] },
